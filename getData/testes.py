@@ -163,7 +163,7 @@ def classificaArestas(adj_list, inicio=None):
     tempoD = [0 for _ in range(len(adj_list))]
     tempoT = [0 for _ in range(len(adj_list))]
 
-    def visitaDFS(vertice, parent):
+    def DFSinterna(vertice, parent):
         nonlocal tempo
         cor[vertice] = 'cinza'
         tempo[0] += 1
@@ -173,7 +173,7 @@ def classificaArestas(adj_list, inicio=None):
             if cor[adj] == 'branco':
                 tipoAresta[vertice][adj] = 'Tree'
                 classificacoes.append((vertice, adj, 'Tree'))
-                visitaDFS(adj, vertice)
+                DFSinterna(adj, vertice)
             elif cor[adj] == 'cinza':
                 tipoAresta[vertice][adj] = 'Back'
                 classificacoes.append((vertice, adj, 'Back'))
@@ -191,7 +191,7 @@ def classificaArestas(adj_list, inicio=None):
 
     for vertice in adj_list:
         if cor[vertice] == 'branco':
-            visitaDFS(vertice, None)
+            DFSinterna(vertice, None)
 
     for vertice in adj_list:
         lista_tempo[vertice] = str(tempoD[vertice]) + '/' + str(tempoT[vertice])
@@ -284,3 +284,134 @@ def verificaDAG(adj_list):
 
     print("DAG")
     return "DAG"
+
+    import numpy as np
+
+def bellmanFord(matriz_adj, vOrigem, vDestino):
+    num_vertices, y = np.shape(matriz_adj)
+    distancia = [float('inf')] * num_vertices
+    antecessor = [None] * num_vertices
+    distancia[vOrigem] = 0
+
+    for _ in range(num_vertices - 1):
+        for u in range(num_vertices):
+            for v in range(num_vertices):
+                if matriz_adj[u][v] != -1:  # Modificação para considerar arestas com peso -1
+                    if distancia[u] + matriz_adj[u][v] < distancia[v]:
+                        distancia[v] = distancia[u] + matriz_adj[u][v]
+                        antecessor[v] = u
+
+    # Verifica se há ciclo negativo
+    for u in range(num_vertices):
+        for v in range(num_vertices):
+            if matriz_adj[u][v] != -1:  # Modificação para considerar arestas com peso -1
+                if distancia[u] + matriz_adj[u][v] < distancia[v]:
+                    raise ValueError("O grafo contém um ciclo negativo")
+
+    # Constrói o caminho mínimo
+    caminho = []
+    v = vDestino
+    while v is not None:
+        caminho.insert(0, v)
+        v = antecessor[v]
+
+    print (caminho, distancia[vDestino])
+    return
+
+def bellmanFord(matriz, vOrigem, vDestino):
+    n, _ = np.shape(matriz)
+    infinito = float('inf')
+    custo = [infinito] * n
+    custo[vOrigem] = 0
+    rota = [-1] * n
+
+    for _ in range(n - 1):
+        for v in range(n):
+            for u in range(n):
+                if matriz[v][u] != -1:
+                    wvu = matriz[v][u]
+                    if custo[v] + wvu < custo[u]:
+                        custo[u] = custo[v] + wvu
+                        rota[u] = v
+
+    for v in range(n):
+        for u in range(n):
+            if matriz[v][u] != -1:
+                wvu = matriz[v][u]
+                if custo[v] + wvu < custo[u]:
+                    return -1
+
+    caminho = []
+    vertice = vDestino
+    while vertice != -1:
+        caminho.insert(0, vertice)
+        vertice = rota[vertice]
+
+    print(caminho, custo[vDestino])
+    return
+
+def dijkstra(matriz, vOrigem, vDestino):
+    n, _ = np.shape(matriz)
+    infinito = float('inf')
+    custo = [infinito] * n
+    custo[vOrigem] = 0
+    rota = [-1] * n
+
+    F = set()
+    A = set(range(n))
+    N = set()
+
+    while A:
+        v = min(A, key=lambda u: custo[u])
+        if v == vDestino:
+            break
+        A.remove(v)
+        F.add(v)
+
+        for u in range(n):
+            if u in A and matriz[v][u] != -1:
+                wvu = matriz[v][u]
+                novaDistancia = custo[v] + wvu
+                if novaDistancia < custo[u]:
+                    custo[u] = novaDistancia
+                    rota[u] = v
+                    N.add(u)
+
+        A.update(N)
+        N.clear()
+
+    caminho = []
+    vertice = vDestino
+    while vertice != -1:
+        caminho.insert(0, vertice)
+        vertice = rota[vertice]
+
+    print(caminho, custo[vDestino])
+    return
+
+def floydWarshall(matriz):
+    matriz_custos = matriz
+    n, _ = np.shape(matriz)
+
+    infinito = 99999999  # Valor grande o suficiente para representar infinito
+
+    for i in range(n):
+        for j in range(n):
+            if matriz_custos[i][j] == -1:
+                matriz_custos[i][j] = infinito
+    
+    for k in range(n):
+        for i in range(n):
+            for j in range(n):
+                if matriz_custos[i][k] + matriz_custos[k][j] < matriz_custos[i][j]:
+                    matriz_custos[i][j] = matriz_custos[i][k] + matriz_custos[k][j]
+
+    for i in range(n):
+        for j in range(n):
+            if matriz_custos[i][j] == infinito:
+                matriz_custos[i][j] = -1
+
+    print(matriz_custos)
+    return
+
+bellmanFord([[-1,6,-1,7,-1], [-1,-1,5,8,-4], [-1,-2,-1,-1,-1], [-1,-1,-3,-1,9], [2,-1,7,-1,-1]], 0, 4,)
